@@ -23,23 +23,25 @@ def sawp_solver(
     """Run the SAWP time integrator.
 
     Args:
-        c0: Initial concentration coefficients, length N.
-        t0: Reference (initial) time.
+        c0: Initial concentration coefficients, length N. Determines the
+            number of grid points N.
+        t0: Reference (initial) time (s).
         n_steps: Number of time steps to integrate.
-        omega: Angular frequency (rad/s).
-        s: Sedimentation coefficient (S).
+        omega: Angular velocity (rad/s). Convert from rpm via
+            ``omega = rpm * 2 * np.pi / 60``.
+        s: Sedimentation coefficient (s). 1 Svedberg = 1e-13 s.
         D: Translational diffusion coefficient (m²/s).
-        m: Meniscus radius (lower grid boundary).
-        b: Bottom radius (upper grid boundary).
-        dt: Time step size.
+        m: Meniscus radius, lower grid boundary (m).
+        b: Bottom radius, upper grid boundary (m).
+        dt: Time step (s).
 
     Returns:
-        times: Time points, shape (n_steps + 1,).
-        coeffs: Concentration coefficients at each time step,
-            shape (n_steps + 1, N), row = time, column = grid node.
+        times: Time points in seconds, shape ``(n_steps + 1,)``.
+        coeffs: Concentration coefficients, shape ``(n_steps + 1, N)``.
+            Row index = time point, column index = grid node.
 
     Raises:
-        ValueError: If input validation fails or the solver exits with a
+        ValueError: If input validation fails or the solver returns a
             non-zero LAPACK factorisation error code.
     """
     c0 = np.ascontiguousarray(c0, dtype=np.float64)

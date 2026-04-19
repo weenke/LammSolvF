@@ -1,6 +1,6 @@
 # LammSolvF
 
-Fortran implementation of the SAWP (Schuck Adaptive Wave Propagation) solver for sedimentation analysis, with a Python interface.
+Fortran implementation of a finite element solver for the Lamm equation using a moving grid, extending the method of Claverie et al. (1975). Includes a Python interface.
 
 ## Reference
 

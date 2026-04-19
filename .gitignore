@@ -1,0 +1,30 @@
+# ── Development tool files ─────────────────────────────────────────────────
+CLAUDE.md
+.fortls
+.vscode/
+
+# ── FPM build artifacts ─────────────────────────────────────────────────────
+build/
+*.out
+
+# ── CMake / scikit-build artifacts ──────────────────────────────────────────
+_cmake_test_compile/
+_skbuild/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# ── Python packaging artifacts ──────────────────────────────────────────────
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ── Fortran compiled artifacts ──────────────────────────────────────────────
+*.mod
+*.o
+*.a
+*.so
+*.dylib
+*.dll

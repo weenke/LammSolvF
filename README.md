@@ -24,7 +24,7 @@ times, coeffs = sawp_solver(
     t0      = 0.0,          # initial time (s)
     n_steps = 200,
     omega   = omega,        # rad/s
-    s       = 1e-13,        # sedimentation coefficient (5 S = 5e-13 s)
+    s       = 1e-13,        # sedimentation coefficient (5 S = 1e-13 s)
     D       = 1e-7,        # diffusion coefficient (cm²/s)
     m       = 6.0,        # meniscus radius (cm)
     b       = 7.2,        # bottom radius (cm)

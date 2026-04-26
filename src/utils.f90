@@ -1,9 +1,12 @@
+!> Low-level utilities for the SAWP solver.
 module solvf_utilities
-    use iso_c_binding, only: c_double, c_int
-    use stdlib_linalg, only: diag
+    use iso_c_binding,  only: c_double, c_int
+    use stdlib_linalg,  only: diag
     use stdlib_sorting, only: sort_index, int_index
     implicit none
     private
+
+    integer, parameter :: dp = c_double
 
     public :: hat_basis_c
     public :: build_schuck_matrices_c
@@ -31,7 +34,7 @@ contains
         integer            :: i, orig_j, node_k
         real(c_double)     :: rj, r_L, r_R, denom
 
-        P = 0.0_c_double
+        P = 0.0_dp
 
         ! Sort query points, preserving original positions
         r_sorted = r
@@ -71,26 +74,26 @@ contains
     ! B_t and J are dense (n x n) arrays, col-major, length n*n each.
     subroutine build_schuck_matrices_c(n, nodes_t, omega, s, s_G, D, alpha, &
                                         B_t, J) bind(C, name="build_schuck_matrices_c")
-        integer(c_int), value, intent(in)   :: n
-        real(c_double),        intent(in)   :: nodes_t(n)
-        real(c_double), value, intent(in)   :: omega, s, s_G, D, alpha
-        real(c_double),        intent(out)  :: B_t(n,n)
-        real(c_double),        intent(out)  :: J(n,n)
+        integer(c_int), value, intent(in)  :: n
+        real(c_double),        intent(in)  :: nodes_t(n)
+        real(c_double), value, intent(in)  :: omega, s, s_G, D, alpha
+        real(c_double),        intent(out) :: B_t(n, n)
+        real(c_double),        intent(out) :: J(n, n)
 
-        real(c_double) :: B_sub(n-1),  B_diag(n),  B_sup(n-1)
-        real(c_double) :: A1_sub(n-1), A1_diag(n), A1_sup(n-1)
-        real(c_double) :: A2_sub(n-1), A2_diag(n), A2_sup(n-1)
-        real(c_double) :: A3_sub(n-1), A3_diag(n), A3_sup(n-1)
-        real(c_double) :: J_sub(n-1),  J_diag(n),  J_sup(n-1)
-        real(c_double) :: r2(n)
-        real(c_double) :: c1, c2, c3
+        real(dp) :: B_sub(n-1),  B_diag(n),  B_sup(n-1)
+        real(dp) :: A1_sub(n-1), A1_diag(n), A1_sup(n-1)
+        real(dp) :: A2_sub(n-1), A2_diag(n), A2_sup(n-1)
+        real(dp) :: A3_sub(n-1), A3_diag(n), A3_sup(n-1)
+        real(dp) :: J_sub(n-1),  J_diag(n),  J_sup(n-1)
+        real(dp) :: r2(n)
+        real(dp) :: c1, c2, c3
 
         r2 = nodes_t * nodes_t
 
-        call get_B_diags (nodes_t, r2, n, B_sub,  B_diag,  B_sup )
-        call get_A1_diags(nodes_t, r2, n, A1_sub, A1_diag, A1_sup)
-        call get_A2_diags(nodes_t, r2, n, A2_sub, A2_diag, A2_sup)
-        call get_A3_diags(nodes_t, r2, n, A3_sub, A3_diag, A3_sup)
+        call get_B_diags (nodes_t, r2, B_sub,  B_diag,  B_sup )
+        call get_A1_diags(nodes_t,     A1_sub, A1_diag, A1_sup)
+        call get_A2_diags(nodes_t, r2, A2_sub, A2_diag, A2_sup)
+        call get_A3_diags(nodes_t, r2, A3_sub, A3_diag, A3_sup)
 
         c1 = D * alpha**(-2)
         c2 = omega**2 * s
@@ -117,33 +120,33 @@ contains
     subroutine build_schuck_diags_c(n, nodes_t, omega, s, s_G, D, alpha, &
                                     B_sub, B_diag, B_sup,                &
                                     J_sub, J_diag, J_sup)                &
-        bind(C, name="build_schuck_diags_c")
-    integer(c_int), value, intent(in)  :: n
-    real(c_double),        intent(in)  :: nodes_t(n)
-    real(c_double), value, intent(in)  :: omega, s, s_G, D, alpha
-    real(c_double),        intent(out) :: B_sub(n-1), B_diag(n), B_sup(n-1)
-    real(c_double),        intent(out) :: J_sub(n-1), J_diag(n), J_sup(n-1)
+            bind(C, name="build_schuck_diags_c")
+        integer(c_int), value, intent(in)  :: n
+        real(c_double),        intent(in)  :: nodes_t(n)
+        real(c_double), value, intent(in)  :: omega, s, s_G, D, alpha
+        real(c_double),        intent(out) :: B_sub(n-1), B_diag(n), B_sup(n-1)
+        real(c_double),        intent(out) :: J_sub(n-1), J_diag(n), J_sup(n-1)
 
-    real(c_double) :: A1_sub(n-1), A1_diag(n), A1_sup(n-1)
-    real(c_double) :: A2_sub(n-1), A2_diag(n), A2_sup(n-1)
-    real(c_double) :: A3_sub(n-1), A3_diag(n), A3_sup(n-1)
-    real(c_double) :: r2(n)
-    real(c_double) :: c1, c2, c3
+        real(dp) :: A1_sub(n-1), A1_diag(n), A1_sup(n-1)
+        real(dp) :: A2_sub(n-1), A2_diag(n), A2_sup(n-1)
+        real(dp) :: A3_sub(n-1), A3_diag(n), A3_sup(n-1)
+        real(dp) :: r2(n)
+        real(dp) :: c1, c2, c3
 
-    r2 = nodes_t * nodes_t
+        r2 = nodes_t * nodes_t
 
-    call get_B_diags (nodes_t, r2, n, B_sub,  B_diag,  B_sup )
-    call get_A1_diags(nodes_t, r2, n, A1_sub, A1_diag, A1_sup)
-    call get_A2_diags(nodes_t, r2, n, A2_sub, A2_diag, A2_sup)
-    call get_A3_diags(nodes_t, r2, n, A3_sub, A3_diag, A3_sup)
+        call get_B_diags (nodes_t, r2, B_sub,  B_diag,  B_sup )
+        call get_A1_diags(nodes_t,     A1_sub, A1_diag, A1_sup)
+        call get_A2_diags(nodes_t, r2, A2_sub, A2_diag, A2_sup)
+        call get_A3_diags(nodes_t, r2, A3_sub, A3_diag, A3_sup)
 
-    c1 = D * alpha**(-2)
-    c2 = omega**2 * s
-    c3 = omega**2 * s_G
+        c1 = D * alpha**(-2)
+        c2 = omega**2 * s
+        c3 = omega**2 * s_G
 
-    J_sub  = c2*A2_sub  - c3*A3_sub  - c1*A1_sub
-    J_diag = c2*A2_diag - c3*A3_diag - c1*A1_diag
-    J_sup  = c2*A2_sup  - c3*A3_sup  - c1*A1_sup
+        J_sub  = c2*A2_sub  - c3*A3_sub  - c1*A1_sub
+        J_diag = c2*A2_diag - c3*A3_diag - c1*A1_diag
+        J_sup  = c2*A2_sup  - c3*A3_sup  - c1*A1_sup
 
     end subroutine build_schuck_diags_c
 
@@ -163,13 +166,13 @@ contains
         integer(c_int), intent(in)  :: N
         real(c_double), intent(out) :: r0(N)
 
-        real(c_double) :: k_interior(N-2)
-        integer        :: k
+        real(dp) :: k_interior(N-2)
+        integer  :: k
 
-        k_interior = [(real(k, c_double), k = 2, N-1)]
+        k_interior = [(real(k, dp), k = 2, N-1)]
 
         ! r(k) = m * (b/m)^((k - 1.5) / (N - 1)),  k = 2..N-1
-        r0(2:N-1) = m * (b / m) ** ((k_interior - 1.5_c_double) / real(N-1, c_double))
+        r0(2:N-1) = m * (b / m) ** ((k_interior - 1.5_dp) / real(N-1, dp))
 
         r0(1) = m
         r0(N) = b
@@ -199,7 +202,7 @@ contains
         integer(c_int), intent(in)  :: N
         real(c_double), intent(out) :: rk_t(N)
 
-        real(c_double) :: alpha_t
+        real(dp) :: alpha_t
 
         alpha_t = exp(S_G * omega**2 * (t - t0))
 
@@ -217,49 +220,49 @@ contains
     ! ===========================================================================
 
     ! --- B matrix diagonals ---
-    subroutine get_B_diags(r, r2, n, sub_d, diag_d, sup_d)
-        integer, intent(in) :: n
-        real(c_double), intent(in)  :: r(n), r2(n)
-        real(c_double), intent(out) :: sub_d(n-1), diag_d(n), sup_d(n-1)
+    subroutine get_B_diags(r, r2, sub_d, diag_d, sup_d)
+        real(dp), intent(in)  :: r(:), r2(:)
+        real(dp), intent(out) :: sub_d(:), diag_d(:), sup_d(:)
 
-        real(c_double) :: m_r, b_r
-        integer :: k
+        real(dp) :: m_r, b_r
+        integer  :: n, k
 
-        m_r = r(1); b_r = r(n)
+        n   = size(r)
+        m_r = r(1)
+        b_r = r(n)
 
         ! Off-diagonals
         do k = 1, n-1
-            sup_d(k) = (r2(k+1) - r2(k)) / 12.0_c_double
+            sup_d(k) = (r2(k+1) - r2(k)) / 12.0_dp
             sub_d(k) = sup_d(k)
         end do
 
         ! Interior diagonal
         do k = 2, n-1
-            diag_d(k) = (r(k+1) - r(k-1)) * (r(k-1) + 2.0_c_double*r(k) + r(k+1)) &
-                        / 12.0_c_double
+            diag_d(k) = (r(k+1) - r(k-1)) * (r(k-1) + 2.0_dp*r(k) + r(k+1)) &
+                        / 12.0_dp
         end do
 
         ! Boundary overrides
-        diag_d(1) = (2.0_c_double*m_r*r(2) - 3.0_c_double*r2(1) + r2(2)) &
-                    / 12.0_c_double
-        diag_d(n) = (3.0_c_double*r2(n) - 2.0_c_double*b_r*r(n-1) - r2(n-1)) &
-                    / 12.0_c_double
+        diag_d(1) = (2.0_dp*m_r*r(2) - 3.0_dp*r2(1) + r2(2)) / 12.0_dp
+        diag_d(n) = (3.0_dp*r2(n) - 2.0_dp*b_r*r(n-1) - r2(n-1)) / 12.0_dp
     end subroutine get_B_diags
 
 
     ! --- A1 matrix diagonals ---
-    subroutine get_A1_diags(r, r2, n, sub_d, diag_d, sup_d)
-        integer,        intent(in)  :: n
-        real(c_double), intent(in)  :: r(n), r2(n)
-        real(c_double), intent(out) :: sub_d(n-1), diag_d(n), sup_d(n-1)
+    subroutine get_A1_diags(r, sub_d, diag_d, sup_d)
+        real(dp), intent(in)  :: r(:)
+        real(dp), intent(out) :: sub_d(:), diag_d(:), sup_d(:)
 
-        real(c_double) :: m_r, b_r
-        integer :: k
+        real(dp) :: m_r, b_r
+        integer  :: n, k
 
-        m_r = r(1) ;  b_r = r(n)
+        n   = size(r)
+        m_r = r(1)
+        b_r = r(n)
 
         do k = 1, n-1
-            sup_d(k) = 0.5_c_double * (r(k+1) + r(k)) / (r(k) - r(k+1))
+            sup_d(k) = 0.5_dp * (r(k+1) + r(k)) / (r(k) - r(k+1))
             sub_d(k) = sup_d(k)
         end do
 
@@ -268,82 +271,80 @@ contains
                         / ((r(k) - r(k-1)) * (r(k+1) - r(k)))
         end do
 
-        diag_d(1) = 0.5_c_double * (r(2) + m_r) / (r(2) - m_r)
-        diag_d(n) = 0.5_c_double * (b_r + r(n-1)) / (b_r - r(n-1))
+        diag_d(1) = 0.5_dp * (r(2) + m_r) / (r(2) - m_r)
+        diag_d(n) = 0.5_dp * (b_r + r(n-1)) / (b_r - r(n-1))
     end subroutine get_A1_diags
 
 
     ! --- A2 matrix diagonals ---
-    subroutine get_A2_diags(r, r2, n, sub_d, diag_d, sup_d)
-        integer,        intent(in)  :: n
-        real(c_double), intent(in)  :: r(n), r2(n)
-        real(c_double), intent(out) :: sub_d(n-1), diag_d(n), sup_d(n-1)
+    subroutine get_A2_diags(r, r2, sub_d, diag_d, sup_d)
+        real(dp), intent(in)  :: r(:), r2(:)
+        real(dp), intent(out) :: sub_d(:), diag_d(:), sup_d(:)
 
-        real(c_double) :: m_r, b_r
-        integer :: k
+        real(dp) :: m_r, b_r
+        integer  :: n, k
 
-        m_r = r(1) ;  b_r = r(n)
+        n   = size(r)
+        m_r = r(1)
+        b_r = r(n)
 
         do k = 1, n-1
-            sub_d(k) = (r2(k+1) + 2.0_c_double*r(k+1)*r(k) + 3.0_c_double*r2(k)) &
-                        / 12.0_c_double
-            sup_d(k) = -(r2(k) + 2.0_c_double*r(k)*r(k+1) + 3.0_c_double*r2(k+1)) &
-                        / 12.0_c_double
+            sub_d(k) = (r2(k+1) + 2.0_dp*r(k+1)*r(k) + 3.0_dp*r2(k)) &
+                        / 12.0_dp
+            sup_d(k) = -(r2(k) + 2.0_dp*r(k)*r(k+1) + 3.0_dp*r2(k+1)) &
+                        / 12.0_dp
         end do
 
         do k = 2, n-1
-            diag_d(k) = (r(k-1) - r(k+1)) * (r(k-1) + 2.0_c_double*r(k) + r(k+1)) &
-                        / 12.0_c_double
+            diag_d(k) = (r(k-1) - r(k+1)) * (r(k-1) + 2.0_dp*r(k) + r(k+1)) &
+                        / 12.0_dp
         end do
 
-        diag_d(1) = (-3.0_c_double*r2(1) - 2.0_c_double*m_r*r(2) - r2(2)) &
-                    / 12.0_c_double
-        diag_d(n) = ( 3.0_c_double*r2(n) + 2.0_c_double*b_r*r(n-1) - r2(n-1)) &
-                    / 12.0_c_double
+        diag_d(1) = (-3.0_dp*r2(1) - 2.0_dp*m_r*r(2) - r2(2)) / 12.0_dp
+        diag_d(n) = ( 3.0_dp*r2(n) + 2.0_dp*b_r*r(n-1) - r2(n-1)) / 12.0_dp
     end subroutine get_A2_diags
 
 
     ! --- A3 matrix diagonals ---
-    subroutine get_A3_diags(r, r2, n, sub_d, diag_d, sup_d)
-        integer,        intent(in)  :: n
-        real(c_double), intent(in)  :: r(n), r2(n)
-        real(c_double), intent(out) :: sub_d(n-1), diag_d(n), sup_d(n-1)
+    subroutine get_A3_diags(r, r2, sub_d, diag_d, sup_d)
+        real(dp), intent(in)  :: r(:), r2(:)
+        real(dp), intent(out) :: sub_d(:), diag_d(:), sup_d(:)
 
-        real(c_double) :: m_r, b_r
-        integer :: k
+        real(dp) :: m_r, b_r
+        integer  :: n, k
 
-        m_r = r(1) ;  b_r = r(n)
+        n   = size(r)
+        m_r = r(1)
+        b_r = r(n)
 
         ! General off-diagonals
         do k = 1, n-1
-            sub_d(k) = ( 3.0_c_double*r2(k+1) + 2.0_c_double*r(k+1)*r(k) + r2(k)) &
-                        / 12.0_c_double
-            sup_d(k) = (-3.0_c_double*r2(k)   - 2.0_c_double*r(k)*r(k+1) - r2(k+1)) &
-                        / 12.0_c_double
+            sub_d(k) = ( 3.0_dp*r2(k+1) + 2.0_dp*r(k+1)*r(k) + r2(k)) &
+                        / 12.0_dp
+            sup_d(k) = (-3.0_dp*r2(k)   - 2.0_dp*r(k)*r(k+1) - r2(k+1)) &
+                        / 12.0_dp
         end do
 
         ! Interior diagonal
-        diag_d(1) = 0.0_c_double
-        diag_d(n) = 0.0_c_double
         do k = 2, n-1
-            diag_d(k) = (r(k+1) - r(k-1)) * (r(k-1) + 2.0_c_double*r(k) + r(k+1)) &
-                        / 12.0_c_double
+            diag_d(k) = (r(k+1) - r(k-1)) * (r(k-1) + 2.0_dp*r(k) + r(k+1)) &
+                        / 12.0_dp
         end do
 
         ! Boundary overrides
-        diag_d(1)  =  r(2) * (m_r + r(2))              / 12.0_c_double
-        sup_d(1)   = -r(2) * (m_r + r(2))              / 12.0_c_double
-        sub_d(1)   =  r(2) * (m_r + 3.0_c_double*r(2)) / 12.0_c_double
+        diag_d(1)  =  r(2) * (m_r + r(2))              / 12.0_dp
+        sup_d(1)   = -r(2) * (m_r + r(2))              / 12.0_dp
+        sub_d(1)   =  r(2) * (m_r + 3.0_dp*r(2))      / 12.0_dp
 
         if (n >= 3) then
-            diag_d(2)   = (-m_r*r(2) + 2.0_c_double*r(2)*r(3) + r2(3)) / 12.0_c_double
-            diag_d(n-1) = ( b_r*r(n-1) - 2.0_c_double*r(n-1)*r(n-2) - r2(n-2)) &
-                            / 12.0_c_double
+            diag_d(2)   = (-m_r*r(2) + 2.0_dp*r(2)*r(3) + r2(3)) / 12.0_dp
+            diag_d(n-1) = ( b_r*r(n-1) - 2.0_dp*r(n-1)*r(n-2) - r2(n-2)) &
+                            / 12.0_dp
         end if
 
-        sup_d(n-1) = -r(n-1) * (b_r + 3.0_c_double*r(n-1)) / 12.0_c_double
-        sub_d(n-1) =  r(n-1) * (b_r + r(n-1))              / 12.0_c_double
-        diag_d(n)  = -r(n-1) * (b_r + r(n-1))              / 12.0_c_double
+        sup_d(n-1) = -r(n-1) * (b_r + 3.0_dp*r(n-1)) / 12.0_dp
+        sub_d(n-1) =  r(n-1) * (b_r + r(n-1))         / 12.0_dp
+        diag_d(n)  = -r(n-1) * (b_r + r(n-1))         / 12.0_dp
 
     end subroutine get_A3_diags
 
@@ -360,31 +361,30 @@ contains
     ! Water properties at 20 °C:
     !   eta  = 1.002e-3 Pa·s,  rho = 998.23 kg/m³,  vbar = 0.73e-3 m³/kg
     pure function d_srf(s, fr, T) result(D)
-        use stdlib_codata,      only: BOLTZMANN_CONSTANT
-        use stdlib_codata_type, only: to_real
+        use stdlib_codata, only: BOLTZMANN_CONSTANT
         real(c_double), intent(in)           :: s, fr
         real(c_double), intent(in), optional :: T
         real(c_double)                       :: D
 
-        real(c_double), parameter :: pi   = acos(-1.0_c_double)
-        real(c_double), parameter :: eta  = 1.002e-3_c_double
-        real(c_double), parameter :: rho  = 998.23_c_double
-        real(c_double), parameter :: vbar = 0.73e-3_c_double
+        real(dp), parameter :: pi   = acos(-1.0_dp)
+        real(dp), parameter :: eta  = 1.002e-3_dp
+        real(dp), parameter :: rho  = 998.23_dp
+        real(dp), parameter :: vbar = 0.73e-3_dp
 
-        real(c_double) :: kB, T_
+        real(dp) :: kB, T_
 
-        kB = to_real(BOLTZMANN_CONSTANT, 1.0_c_double)
+        kB = real(BOLTZMANN_CONSTANT%value, dp)
 
         if (present(T)) then
             T_ = T
         else
-            T_ = 293.15_c_double
+            T_ = 293.15_dp
         end if
 
-        D = (sqrt(2.0_c_double) / (18.0_c_double * pi)) &
-            * kB * T_ * s**(-0.5_c_double)              &
-            * (eta * fr)**(-1.5_c_double)               &
-            * sqrt((1.0_c_double - vbar * rho) / vbar)
+        D = (sqrt(2.0_dp) / (18.0_dp * pi)) &
+            * kB * T_ * s**(-0.5_dp)        &
+            * (eta * fr)**(-1.5_dp)          &
+            * sqrt((1.0_dp - vbar * rho) / vbar)
 
     end function d_srf
 

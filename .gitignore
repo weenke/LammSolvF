@@ -2,6 +2,7 @@
 CLAUDE.md
 .fortls
 .vscode/
+fbps/
 
 # ── FPM build artifacts ─────────────────────────────────────────────────────
 build/
